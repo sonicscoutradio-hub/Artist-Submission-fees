@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sonic Scout Radio — Submission Fee Database</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0d0d0f;color:#f0ede8;font-family:Arial,sans-serif;min-height:100vh;}
+header{background:#111114;border-bottom:2px solid #e8700a;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:100;}
+.hlogo{font-size:1.1rem;font-weight:700;color:#f0ede8;letter-spacing:.05em;}
+.hsub{font-size:11px;color:#c0c0c0;letter-spacing:.1em;text-transform:uppercase;margin-top:2px;}
+.htotals{display:flex;gap:20px;flex-wrap:wrap;}
+.htotal{text-align:right;}
+.htotal-val{font-size:1.4rem;font-weight:700;color:#e8700a;}
+.htotal-label{font-size:10px;color:#c0c0c0;letter-spacing:.1em;text-transform:uppercase;}
+.summary{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));background:#1a1a1e;border-bottom:1px solid #222;}
+.scard{background:#111114;padding:14px 18px;border-right:1px solid #1a1a1e;}
+.scard-val{font-size:1.5rem;font-weight:700;color:#f0ede8;}
+.scard-label{font-size:10px;color:#c0c0c0;letter-spacing:.1em;text-transform:uppercase;margin-top:3px;}
+.controls{padding:14px 28px;background:#0d0d0f;display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-bottom:1px solid #1a1a1e;}
+.search-wrap{position:relative;flex:1;min-width:200px;max-width:360px;}
+.search-wrap input{width:100%;background:#111114;border:1px solid #2a2a2e;color:#f0ede8;padding:9px 14px 9px 34px;font-size:13px;border-radius:3px;outline:none;font-family:Arial,sans-serif;}
+.search-wrap input:focus{border-color:#e8700a;}
+.search-wrap input::placeholder{color:#888;}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#b0b0b0;font-size:13px;}
+select{background:#111114;border:1px solid #2a2a2e;color:#f0ede8;padding:9px 12px;font-size:12px;border-radius:3px;outline:none;cursor:pointer;font-family:Arial,sans-serif;}
+select:focus{border-color:#e8700a;}
+.count-info{font-size:11px;color:#c0c0c0;margin-left:auto;}
+.count-info span{color:#f0ede8;}
+.add-btn{background:#e8700a;color:#fff;border:none;padding:9px 18px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:3px;font-family:Arial,sans-serif;}
+.add-btn:hover{background:#f5903a;}
+.table-wrap{overflow-x:auto;padding:0 28px 40px;}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px;}
+thead tr{background:#111114;border-bottom:2px solid #e8700a;}
+th{padding:11px 12px;text-align:left;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#e8700a;font-weight:700;cursor:pointer;white-space:nowrap;user-select:none;}
+th:hover{color:#f5f0e8;}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.05);transition:background .1s;}
+tbody tr:hover{background:#161616;}
+tbody tr.new-row{animation:newrow .8s ease;}
+tbody tr.sponsor-row{background:rgba(232,112,10,.04);}
+@keyframes newrow{from{background:rgba(232,112,10,.2)}to{background:transparent}}
+td{padding:10px 12px;vertical-align:middle;}
+.td-order{font-family:'Courier New',monospace;font-size:12px;color:#c0c0c0;}
+.td-presenter{font-weight:600;color:#e8c090;}
+.td-artist{color:#f0ede8;font-weight:600;}
+.td-song{color:#c0c0c0;font-size:12px;}
+.td-date{color:#c0c0c0;font-size:12px;white-space:nowrap;}
+.td-fee{font-weight:700;color:#3ecf8e;text-align:right;}
+.td-sonic{font-weight:700;color:#4ea8de;text-align:right;}
+.td-email{color:#b0b0b0;font-size:11px;}
+.td-ref{font-family:'Courier New',monospace;font-size:10px;color:#c0c0c0;white-space:nowrap;}
+.td-sponsor{text-align:center;font-size:12px;}
+.sponsor-yes{color:#f5903a;font-weight:700;}
+.sponsor-no{color:#444;}
+tfoot tr{background:#111114;border-top:2px solid #e8700a;}
+tfoot td{padding:12px;}
+.ft-label{color:#e8700a;font-size:10px;letter-spacing:.15em;text-transform:uppercase;}
+.ft-total{color:#3ecf8e;font-weight:700;}
+.ft-sonic{color:#4ea8de;font-weight:700;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.open{display:flex;}
+.modal{background:#111114;border:1px solid #2a2a2e;border-top:3px solid #e8700a;width:100%;max-width:580px;padding:28px;border-radius:4px;max-height:90vh;overflow-y:auto;}
+.modal h2{font-size:1rem;letter-spacing:.05em;text-transform:uppercase;color:#f0ede8;margin-bottom:20px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-row.full{grid-template-columns:1fr;}
+.form-row.three{grid-template-columns:1fr 1fr 1fr;}
+label{font-size:10px;color:#c0c0c0;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:5px;}
+input[type=text],input[type=number],input[type=date]{width:100%;background:#0d0d0f;border:1px solid #2a2a2e;color:#f0ede8;padding:9px 12px;font-size:13px;border-radius:3px;outline:none;font-family:Arial,sans-serif;}
+input:focus{border-color:#e8700a;}
+.modal-btns{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+.btn-cancel{background:transparent;border:1px solid #2a2a2e;color:#c0c0c0;padding:9px 18px;font-size:12px;cursor:pointer;border-radius:3px;font-family:Arial,sans-serif;}
+.btn-save{background:#e8700a;color:#fff;border:none;padding:9px 18px;font-size:12px;font-weight:700;cursor:pointer;border-radius:3px;font-family:Arial,sans-serif;}
+.btn-save:hover{background:#f5903a;}
+.btn-delete{background:transparent;border:1px solid #c0392b;color:#e74c3c;padding:9px 18px;font-size:12px;font-weight:700;cursor:pointer;border-radius:3px;font-family:Arial,sans-serif;margin-right:auto;}
+.btn-delete:hover{background:rgba(231,76,60,.15);}
+tbody tr{cursor:pointer;}
+.edit-badge{display:inline-block;font-size:9px;color:#555;letter-spacing:.08em;margin-left:6px;opacity:0;}
+tbody tr:hover .edit-badge{opacity:1;}
+@media(max-width:700px){.table-wrap{padding:0 12px 40px;}.controls{padding:12px;}.htotals{display:none;}.form-row,.form-row.three{grid-template-columns:1fr;}}
+
+.chart-wrap{padding:28px 28px 0;border-top:1px solid #1a1a1e;}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.chart-title{font-size:10px;color:#e8700a;letter-spacing:.2em;text-transform:uppercase;font-weight:700;}
+.chart-toggles{display:flex;gap:8px;}
+.chart-toggle{background:#111114;border:1px solid #2a2a2e;color:#c0c0c0;padding:5px 12px;font-size:11px;cursor:pointer;border-radius:3px;font-family:Arial,sans-serif;transition:all .15s;}
+.chart-toggle.active{background:#e8700a;border-color:#e8700a;color:#fff;}
+.chart-container{position:relative;height:260px;width:100%;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="hlogo">Sonic Scout Radio</div>
+    <div class="hsub">Submission Fee Database</div>
+  </div>
+  <div class="htotals">
+    <div class="htotal"><div class="htotal-val" id="hTotalSub">$0</div><div class="htotal-label">Total Sub Fees</div></div>
+    <div class="htotal"><div class="htotal-val" id="hTotalSonic">$0</div><div class="htotal-label">Total Sonic Fees</div></div>
+    <div class="htotal"><div class="htotal-val" id="hEntries">0</div><div class="htotal-label">Total Entries</div></div>
+  </div>
+</header>
+
+<div class="summary">
+  <div class="scard"><div class="scard-val" id="sTotalSub">–</div><div class="scard-label">Submission Fees</div></div>
+  <div class="scard"><div class="scard-val" id="sTotalSonic">–</div><div class="scard-label">Sonic Fees</div></div>
+  <div class="scard"><div class="scard-val" id="sEntries">–</div><div class="scard-label">Submissions</div></div>
+  <div class="scard"><div class="scard-val" id="sPresenters">–</div><div class="scard-label">Presenters</div></div>
+  <div class="scard"><div class="scard-val" id="sSponsors">–</div><div class="scard-label">Sponsors</div></div>
+  <div class="scard"><div class="scard-val" id="sAvgFee">–</div><div class="scard-label">Avg Sub Fee</div></div>
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="searchInput" placeholder="Search artist, presenter, song, ref..." oninput="renderTable()">
+  </div>
+  <select id="filterPresenter" onchange="renderTable()"><option value="">All Presenters</option></select>
+  <select id="filterSponsor" onchange="renderTable()">
+    <option value="">All Entries</option>
+    <option value="yes">Sponsors Only</option>
+    <option value="no">Non-Sponsors Only</option>
+  </select>
+  <select id="filterMonth" onchange="renderTable()">
+    <option value="">All Months</option>
+    <option value="2025-07">Jul 2025</option>
+    <option value="2025-08">Aug 2025</option>
+    <option value="2025-09">Sep 2025</option>
+    <option value="2025-10">Oct 2025</option>
+    <option value="2025-11">Nov 2025</option>
+    <option value="2025-12">Dec 2025</option>
+    <option value="2026-01">Jan 2026</option>
+    <option value="2026-02">Feb 2026</option>
+    <option value="2026-03">Mar 2026</option>
+    <option value="2026-04">Apr 2026</option>
+    <option value="2026-05">May 2026</option>
+    <option value="2026-06">Jun 2026</option>
+    <option value="2026-07">Jul 2026</option>
+    <option value="2026-08">Aug 2026</option>
+    <option value="2026-09">Sep 2026</option>
+    <option value="2026-10">Oct 2026</option>
+    <option value="2026-11">Nov 2026</option>
+    <option value="2026-12">Dec 2026</option>
+  </select>
+  <select id="sortField" onchange="renderTable()">
+    <option value="order">Sort: Order #</option>
+    <option value="date">Sort: Date</option>
+    <option value="sub_fee">Sort: Sub Fee</option>
+    <option value="presenter">Sort: Presenter</option>
+    <option value="artist">Sort: Artist</option>
+  </select>
+  <select id="sortDir" onchange="renderTable()">
+    <option value="asc">Ascending</option>
+    <option value="desc">Descending</option>
+  </select>
+  <div class="count-info">Showing <span id="showCount">0</span> of <span id="totalCount">0</span></div>
+  <button class="add-btn" onclick="openModal()">+ Add Entry</button>
+  <button class="add-btn" onclick="exportCSV()" style="background:#3ecf8e;margin-left:4px;">&#8595; Export CSV</button>
+  <button id="syncBtn" class="add-btn" onclick="syncToSheet()" style="background:#4ea8de;margin-left:4px;">&#8679; Sync to Sheet</button>
+  <button id="loadBtn" class="add-btn" onclick="loadFromSheet()" style="background:#9b59b6;margin-left:4px;">&#8681; Load from Sheet</button>
+</div>
+
+
+<div class="chart-wrap">
+  <div class="chart-header">
+    <div class="chart-title">Submissions by Month</div>
+    <div class="chart-toggles">
+      <button class="chart-toggle active" onclick="setChartMode('submissions')">Submissions</button>
+      <button class="chart-toggle" onclick="setChartMode('sub_fee')">Sub Fees ($)</button>
+      <button class="chart-toggle" onclick="setChartMode('sonic_fee')">Sonic Fees ($)</button>
+    </div>
+  </div>
+  <div class="chart-container">
+    <canvas id="ssrChart"></canvas>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th onclick="setSort('order')">Order #</th>
+        <th onclick="setSort('presenter')">Presenter</th>
+        <th onclick="setSort('artist')">Artist</th>
+        <th>Song</th>
+        <th onclick="setSort('date')">Date</th>
+        <th onclick="setSort('sub_fee')" style="text-align:right">Sub Fee</th>
+        <th onclick="setSort('sonic_fee')" style="text-align:right">Sonic Fee</th>
+        <th>Artist Email</th>
+        <th>Payment Ref</th>
+        <th style="text-align:center">Sponsor</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4" class="ft-label">Filtered Totals</td>
+        <td></td>
+        <td class="ft-total" id="ftSubTotal" style="text-align:right"></td>
+        <td class="ft-sonic" id="ftSonicTotal" style="text-align:right"></td>
+        <td colspan="3"></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2>Add New Submission</h2>
+    <div class="form-row">
+      <div><label>Presenter</label><input type="text" id="fPresenter" placeholder="e.g. Suki Blaze"></div>
+      <div><label>Order #</label><input type="number" id="fOrder" placeholder="e.g. 1300"></div>
+    </div>
+    <div class="form-row full">
+      <div><label>Artist Name</label><input type="text" id="fArtist" placeholder="Artist or band name"></div>
+    </div>
+    <div class="form-row full">
+      <div><label>Song Title</label><input type="text" id="fSong" placeholder="Song title(s)"></div>
+    </div>
+    <div class="form-row">
+      <div><label>Date</label><input type="text" id="fDate" placeholder="MM/DD/YYYY"></div>
+      <div><label>Artist Email</label><input type="text" id="fEmail" placeholder="artist@email.com"></div>
+    </div>
+    <div class="form-row three">
+      <div><label>Submission Fee ($)</label><input type="number" id="fSubFee" step="0.01" placeholder="10.00"></div>
+      <div><label>Sonic Fee ($)</label><input type="number" id="fSonicFee" step="0.01" placeholder="5.50"></div>
+      <div><label>Payment Ref</label><input type="text" id="fPayRef" placeholder="e.g. 4N827009W..."></div>
+    </div>
+    <div class="form-row" style="margin-top:4px;">
+      <div style="display:flex;align-items:center;gap:10px;padding-top:6px;">
+        <input type="checkbox" id="fSponsor" style="width:16px;height:16px;accent-color:#e8700a;cursor:pointer;">
+        <label for="fSponsor" style="font-size:13px;color:#c0c0c0;text-transform:none;letter-spacing:0;cursor:pointer;margin:0;">This is a Sponsor submission</label>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- EDIT MODAL -->
+<div class="modal-bg" id="editModal" onclick="if(event.target===this)closeEdit()">
+  <div class="modal" style="border-top-color:#4ea8de;">
+    <h2 style="color:#4ea8de;">Edit Entry</h2>
+    <div class="form-row">
+      <div><label>Presenter</label><input type="text" id="ePresenter" placeholder="Presenter"></div>
+      <div><label>Order #</label><input type="number" id="eOrder" placeholder="Order #"></div>
+    </div>
+    <div class="form-row full">
+      <div><label>Artist Name</label><input type="text" id="eArtist" placeholder="Artist name"></div>
+    </div>
+    <div class="form-row full">
+      <div><label>Song Title</label><input type="text" id="eSong" placeholder="Song title(s)"></div>
+    </div>
+    <div class="form-row">
+      <div><label>Date</label><input type="text" id="eDate" placeholder="MM/DD/YYYY"></div>
+      <div><label>Artist Email</label><input type="text" id="eEmail" placeholder="artist@email.com"></div>
+    </div>
+    <div class="form-row three">
+      <div><label>Submission Fee ($)</label><input type="number" id="eSubFee" step="0.01" placeholder="10.00"></div>
+      <div><label>Sonic Fee ($)</label><input type="number" id="eSonicFee" step="0.01" placeholder="5.50"></div>
+      <div><label>Payment Ref</label><input type="text" id="ePayRef" placeholder="Payment ref"></div>
+    </div>
+    <div class="form-row" style="margin-top:4px;">
+      <div style="display:flex;align-items:center;gap:10px;padding-top:6px;">
+        <input type="checkbox" id="eSponsor" style="width:16px;height:16px;accent-color:#e8700a;cursor:pointer;">
+        <label for="eSponsor" style="font-size:13px;color:#c0c0c0;text-transform:none;letter-spacing:0;cursor:pointer;margin:0;">This is a Sponsor submission</label>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-delete" onclick="deleteEntry()">&#128465; Delete Entry</button>
+      <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
+      <button class="btn-save" style="background:#4ea8de;" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+var STORAGE_KEY = 'ssrSubmissionsV2';
+var seedData = [{"presenter": "Maiya", "artist": "Pressahh Squad Elite", "song": "Nothin Like", "date": "07/18/25", "order": 1067, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "pressahhsquadelite@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Chase Mz", "song": "Lambeau", "date": "07/20/25", "order": 1071, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chasemzmusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Terrence Brewer", "song": "", "date": "07/22/25", "order": 1072, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Kinglbcle@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Candace Faith", "artist": "Lauren Rose Thayer", "song": "Famous", "date": "07/18/25", "order": 1068, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Laurenrosethayer@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Candace Faith", "artist": "Craig Veltri", "song": "Savin' Up Dreams", "date": "07/26/25", "order": 1084, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "craigveltriofficial@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Nina Nicole", "artist": "Terrell Woodall/", "song": "Everlasting", "date": "07/19/25", "order": 1070, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "btwoodall80@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Nina Nicole", "artist": "D J NELL DA DON", "song": "Never been ashamed", "date": "07/18/25", "order": 1069, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Nelltv107@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Nina Nicole", "artist": "Alexzander Ybarra", "song": "", "date": "07/23/25", "order": 1074, "sub_fee": 30.0, "sonic_fee": 16.5, "email": "Sonnyzofficial@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Rick Willoughby", "song": "Big River", "date": "07/24/25", "order": 1075, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "shakedownstrings@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Rick Willoughby", "song": "Black Throated Wind", "date": "07/24/25", "order": 1076, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "shakedownstrings@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Rick Willoughby", "song": "Casey Jones", "date": "07/24/25", "order": 1077, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "shakedownstrings@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Rick Willoughby", "song": "Estimated Prophet", "date": "07/24/25", "order": 1078, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "shakedownstrings@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Rick Willoughby", "song": "West L.A. Fadeaway", "date": "07/24/25", "order": 1079, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "shakedownstrings@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Rick Willoughby", "song": "Liberty", "date": "07/24/25", "order": 1080, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "shakedownstrings@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Rick Willoughby", "song": "Truckin'", "date": "07/24/25", "order": 1081, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "shakedownstrings@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Rick Willoughby", "song": "Cold Rain & Snow", "date": "07/24/25", "order": 1082, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "shakedownstrings@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "RiniB", "artist": "Pop og Gray", "song": "So Done", "date": "07/25/25", "order": 1083, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "us@thepopofgray.com", "payment_ref": "", "sponsor": false}, {"presenter": "Nina Nicole", "artist": "D J NELL DA DON", "song": "Wanna Be Right", "date": "2025-02-08 00:00:00", "order": 1088, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Dan Arwady", "song": "Cold in Memphis\", \"Somebody Else\", \"California\",", "date": "2025-01-08 00:00:00", "order": 1086, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "danarwadymusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Todd Sentilles", "song": "Headstart  &You Always Run", "date": "2025-02-08 00:00:00", "order": 1087, "sub_fee": 20.0, "sonic_fee": 11.0, "email": "todd.sentilles@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Smooth Operator Ft. BrxkenArrxw", "song": "Gate City Dream", "date": "08/13/2025", "order": 1108, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Adrianlouis97@mail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Tanner Burch", "song": "I Reckon, Damn The Mirror, Coffee and Crown", "date": "08/13/2025", "order": 1109, "sub_fee": 30.0, "sonic_fee": 18.0, "email": "tannerburchmusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Dusty Pockets", "song": "Fade Away", "date": "08/13/2025", "order": 1110, "sub_fee": 30.0, "sonic_fee": 18.0, "email": "jsalczenko87@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Josh Galvan", "song": "Venice", "date": "08/22/2025", "order": 1118, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "joshgalvan@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Lynney Williamson", "song": "Shadows", "date": "08/21/2025", "order": 1120, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "screamingpillow@hotmail.co.uk", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "The Blue Fiddles", "song": "Ever Really Up To Us", "date": "08/26/2025", "order": 1126, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "alias.semifinal477@passmail.net", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "RitmoVerse", "song": "Corazon y Perreo", "date": "08/26/2025", "order": 1129, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ritmoverse2025@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "RitmoVerse", "song": "Contigo en la Mia", "date": "08/27/2025", "order": 1130, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ritmoverse2025@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Jethro", "song": "if you miss me", "date": "08/27/2025", "order": 1131, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jethrobodeanlaird@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Lee Fayssoux", "song": "Just Can't Wait", "date": "08/21/2025", "order": 1117, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Jlfayssoux@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "jethro songs (what you get) (ill just bark)", "song": "what you get & ill just bark", "date": "08/27/2025", "order": 1132, "sub_fee": 20.0, "sonic_fee": 11.0, "email": "jethrobodeanlaird@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Luke Brown & The Jubilee", "song": "Eastern Shore", "date": "08/27/2025", "order": 1134, "sub_fee": 20.0, "sonic_fee": 11.0, "email": "sirlukebrown13@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "RiniB", "artist": "Eternelle Mary", "song": "This Summer Story", "date": "2025-05-08 00:00:00", "order": 1091, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Eternellemary@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "RiniB", "artist": "Professeur Whom", "song": "Cicadas", "date": "2025-08-08 00:00:00", "order": 1096, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "professeurwhom@icloud.com", "payment_ref": "", "sponsor": false}, {"presenter": "RiniB", "artist": "RitmoVerse", "song": "Filtered Reality", "date": "2025-08-08 00:00:00", "order": 1098, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ritmoverse2025@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "RiniB", "artist": "RitmoVerse", "song": "Faith in the Beat", "date": "2025-08-08 00:00:00", "order": 1100, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ritmoverse2025@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "RiniB", "artist": "RitmoVerse", "song": "Light Me Up Tonight", "date": "2025-08-08 00:00:00", "order": 1099, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ritmoverse2025@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "RiniB", "artist": "STEINO", "song": "On my own", "date": "08/29/2025", "order": 1139, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "oskar.steinhauf@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Jonathan Tate", "song": "We Are Humans", "date": "2025-08-17 00:00:00", "order": 1113, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jonathanrtate1984@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "RitmoVerse", "song": "Sacala Pa'l Perreo", "date": "08/28/2025", "order": 1136, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ritmoverse2025@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "RitmoVerse", "song": "Midnight Mirage", "date": "08/28/2025", "order": 1137, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ritmoverse2025@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DJ Candace", "artist": "SulkyThread", "song": "My Name's Not Nancy", "date": "2025-03-08 00:00:00", "order": 1090, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "sulkythread@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DJ Candace", "artist": "Somethin' Trippy", "song": "Daydream", "date": "2025-08-08 00:00:00", "order": 1101, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "somethintrippymusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "SINA", "song": "Let It Go", "date": "2025-06-08 00:00:00", "order": 1093, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "sinamusicmgmt@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "teo tala", "song": "Drunk on a weekend", "date": "2025-08-08 00:00:00", "order": 1097, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "teotalamusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "Byron Thomas", "song": "Under Construction", "date": "2025-12-08 00:00:00", "order": 1104, "sub_fee": 40.0, "sonic_fee": 25.0, "email": "theivories25@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "Tim McDonald", "song": "Spankin Bottom Red", "date": "08/13/2025", "order": 1107, "sub_fee": 20.0, "sonic_fee": 12.0, "email": "the_truth2025@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "Andrew Witt", "song": "Kates House", "date": "08/17/2025", "order": 1112, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "andrewwitt77@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "Nathaniel", "song": "Show Me a Smile", "date": "08/28/2025", "order": 1142, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "nathaniel.d.jacob@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "Byron Thomas", "song": "Under Construction", "date": "08/31/2025", "order": 1148, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "theivories25@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Sarah Shafey", "song": "I Lied to You", "date": "2025-06-08 00:00:00", "order": 1094, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "SSHAFEY@YAHOO.COM", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Me + Nobody", "song": "TheCab", "date": "2025-07-08 00:00:00", "order": 1095, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "meandnobodyband@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "The Suits", "song": "I'm Your Guy", "date": "2025-09-08 00:00:00", "order": 1102, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "suitsboston@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "The Over Unders", "song": "Secret Garden", "date": "08/13/25", "order": 1105, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "theoverunders16@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Ellis B.", "song": "Feels Better", "date": "08/13/2025", "order": 1111, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Damilitant25@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Cameron X", "song": "Say What U Said", "date": "08/21/2025", "order": 1119, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "cameronschulte2@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Jarebear", "song": "BOX CUTTER", "date": "08/22/2025", "order": 1121, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "huesmusic99@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Ocean Joy", "song": "Yoh, Most Nights", "date": "08/22/2025", "order": 1122, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Oceanjoy808@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Prince Philippe", "song": "Hour of Need", "date": "08/22/2025", "order": 1123, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "pietrocarallo99@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "RitmoVerse", "song": "Neon Lies", "date": "08/29/2025", "order": 1141, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ritmoverse2025@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "RitmoVerse Bajo", "song": "La Luna de Azucar", "date": "08/29/2025", "order": 1140, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ritmoverse2025@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "jarebear", "song": "Smoke and Mirrors", "date": "08/31/2025", "order": 1146, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "huesmusic99@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Kinfe Emoji", "song": "Easter Winds parts 1 & 2", "date": "08/31/2025", "order": 1147, "sub_fee": 20.0, "sonic_fee": 12.0, "email": "paul.learned@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Wren", "artist": "Zander Hulme", "song": "Loose Tiller", "date": "2025-12-08 00:00:00", "order": 1103, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "zander@supertonic.au", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Charlie T", "song": "", "date": "08/13/2025", "order": 1106, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chartempublishinggroup@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Chyna Cloud", "song": "Q&A", "date": "08/26/2025", "order": 1128, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "cloudchyna@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "seaven", "song": "High Rize", "date": "08/28/2025", "order": 1138, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "rellfromrockaway@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Allay Earheart/2005/Maimuxic/", "song": "Allay Earheart/2005/Maimuxic/", "date": "08/29/2025", "order": 1143, "sub_fee": 30.0, "sonic_fee": 18.0, "email": "uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Connor B", "artist": "Rodrigo Peregrino.", "song": "Falco peregrinus.", "date": "08/30/2025", "order": 1144, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Tim", "artist": "Destinee Bonum", "song": "Sunset song", "date": "08/21/2025", "order": 1115, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Destineemusik@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Jordi", "artist": "RaeDae", "song": "/Give Me What Cha Got", "date": "08/21/2025", "order": 1116, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "heyraedae@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Jordi", "artist": "Ritz", "song": "Ice On My Skin", "date": "08/31/2025", "order": 1145, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "24ritika.kumar@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Candace Faith", "artist": "Dana Pagane", "song": "Doggy Paddle Can't Love You For Too Long", "date": "08/22/2025", "order": 1124, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "dana@doggypaddlemusic.com", "payment_ref": "", "sponsor": false}, {"presenter": "Candace Faith", "artist": "Jak Fiddler Band", "song": "I'm Done", "date": "08/26/2025", "order": 1125, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Jakfiddler@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Candace Faith", "artist": "Joe Christian", "song": "You Were Meant For Me", "date": "08/26/2025", "order": 1127, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "joechristianmusictoday@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Mike Montrey Band", "song": "Stained Glass Window Panes,", "date": "2025-11-09 00:00:00", "order": 1167, "sub_fee": 30.0, "sonic_fee": 16.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Dwight Knight,", "song": "Last Call, Small Town, Begin Again, Traction,", "date": "09/14/2025", "order": 1174, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Michael Versluis", "song": "Legends Of That Lone star Sound", "date": "09/19/2025", "order": 1181, "sub_fee": 20.0, "sonic_fee": 9.0, "email": "Michael_versluis@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Eric Chiaramonte", "song": "Salt of the Earth", "date": "09/19/2025", "order": 1184, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "countrynamesandplaces@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Country Names and Places aka Oil City Hillbillies", "song": "White Trash Revival", "date": "09/19/2025", "order": 1185, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "echia01@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Country Names and Places aka Oil City Hillbillies", "song": "Beater with a Heater", "date": "09/19/2025", "order": 1186, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "echia01@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Country Names and Places aka Oil City Hillbillies", "song": "Jack up on Jack in My Jacked Up Truck", "date": "09/20/2025", "order": 1190, "sub_fee": 20.0, "sonic_fee": 9.0, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Michael J Versluis", "song": "High Seas Thunder", "date": "09/22/2025", "order": 1198, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "michael_versluis@yahoo.com,", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Daniel J Kirtley", "song": "Empty Walls, Lost Among the Sound, Light Once Seen", "date": "09/26/2025", "order": 1211, "sub_fee": 30.0, "sonic_fee": 16.5, "email": "danjkirtley1991@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "michael_versluis@yahoo.com", "song": "Barbed Wire Blues", "date": "09/23/2025", "order": 1200, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "michael_versluis@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "RiniB", "artist": "Penumbra Project", "song": "Don't Stop The Music", "date": "2025-10-09 00:00:00", "order": 1162, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "olisaemeka2112@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "RiniB", "artist": "Penumbra Project", "song": "Audi Quattro Sport", "date": "2025-10-09 00:00:00", "order": 1163, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "olisaemeka2112@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "RiniB", "artist": "Penumbra Project", "song": "Departure To Lagos", "date": "2025-10-09 00:00:00", "order": 1164, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "olisaemeka2112@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "outcastfrequency@sonicscoutradio.com", "artist": "Promethean", "song": "The Knife", "date": "2025-09-09 00:00:00", "order": 1158, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "MIND:FIELD", "song": "Swine Before Pearls Marcel Ulbrich", "date": "2025-10-09 00:00:00", "order": 1160, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "mindfield.prog@googlemail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Vertigo Fox", "song": "Bitter Wing", "date": "09/16/2025", "order": 1178, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "The Sleeper Service", "song": "Pandora", "date": "09/17/2025", "order": 1179, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "kenneth.holter@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Devolver/", "song": "Non Compos Mentos/", "date": "09/20/2025", "order": 1191, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jayde.m.penner@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Little League Rebellion", "song": "Blac & Somer", "date": "09/20/2025", "order": 1192, "sub_fee": 20.0, "sonic_fee": 9.0, "email": "llrebellion@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Winset halo,", "song": "I can't wait,", "date": "09/25/2025", "order": 1202, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Winset halo/", "song": "second hand/", "date": "09/25/2025", "order": 1203, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ethansmit76@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Mourning Service", "song": "/ Lone Devotion", "date": "09/25/2025", "order": 1204, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "zombieofficial@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Nathan Hernandez", "song": "Deadweight", "date": "09/25/2025", "order": 1208, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "nathan_hernandez@icloud.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "SleepieWonder", "song": "Pity Party", "date": "09/26/2025", "order": 1213, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "sleepiewonder@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Catammonia", "song": "Fault", "date": "09/23/2025", "order": 1202, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "mgmt.catammonia@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Royce Anthony", "song": "Show U Off", "date": "2025-10-09 00:00:00", "order": 1159, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "NIANIA | song title: Pic & Choose", "song": "Pic & Choose", "date": "2025-09-11 00:00:00", "order": 1165, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Ncuquanoxslime", "song": "demon luv", "date": "09/14/2025", "order": 1171, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "quanoslime@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Jadeafterdark", "song": "/ MOVE MY BODY", "date": "09/14/2025", "order": 1180, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Levi White/", "song": "Away Away Away, \"A.N.G.T.H\"", "date": "09/19/2025", "order": 1182, "sub_fee": 20.0, "sonic_fee": 9.0, "email": "leviellis344@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Jade Winter", "song": "Critic", "date": "09/19/2025", "order": 1183, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Jadelimusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Project Dumb,", "song": "Chicken Little", "date": "09/20/2025", "order": 1189, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "lucas.colada@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "t. cetera", "song": "SCENE!", "date": "09/25/2026", "order": 1210, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "everythingcetera@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Parker London", "song": "Bluehour", "date": "09/26/2025", "order": 1212, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "parker.mcaferty@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "NIANIA", "song": "/ Drunken Friendz , Pic & Choose", "date": "09/28/2025", "order": 1216, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "niania.musica@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "Ike Rivers", "song": "Let Me Go", "date": "2025-01-09 00:00:00", "order": 1149, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ikemusicbookings@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "Beaux H3nry", "song": "Forever You", "date": "2025-08-09 00:00:00", "order": 1156, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "beauxh3nryofficial@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "Ronnie Gotcha and Odeljones", "song": "Ms Inez", "date": "2025-10-09 00:00:00", "order": 1161, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "odeljones@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "Ali B", "song": "Makeup", "date": "09/22/2025", "order": 1197, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "alibmssass@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "catdoor", "song": "tangled", "date": "2025-04-09 00:00:00", "order": 1151, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "catdoorsongs@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Ocean Rivera", "song": "Rain", "date": "2025-03-09 00:00:00", "order": 1150, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Contact@oceanrivera.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Zack Hoskins", "song": "Swoovi/Ideal", "date": "2025-06-09 00:00:00", "order": 1152, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "swoovirecords@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Matty Frank", "song": "Pop Singer and Folk Singer", "date": "2025-07-09 00:00:00", "order": 1154, "sub_fee": 20.0, "sonic_fee": 11.5, "email": "paul.learned@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Running Riot-", "song": "You're the One and Boredom", "date": "2025-11-09 00:00:00", "order": 1166, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "runningriotbandofficial@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Indigo Syndicate", "song": "/Ravioli, Wondering Why, and Face Down/", "date": "09/14/2025", "order": 1173, "sub_fee": 30.0, "sonic_fee": 16.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Holly Rudolph", "song": "High Control", "date": "09/15/2025", "order": 1175, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "holly.leigh.rudolph@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "eo tala", "song": "m doing fine", "date": "09/15/2025", "order": 1176, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "teotalamusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Sarah Again,", "song": "All That Matters", "date": "09/20/2025", "order": 1188, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "sarahagainmusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Turns out", "song": "by WASHY & DTM", "date": "09/21/2025", "order": 1193, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Washymusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Sarah Again/Radio (two songs)", "song": "Sarah Again/Radio (two songs)", "date": "09/21/2025", "order": 1196, "sub_fee": 20.0, "sonic_fee": 9.0, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Founded Upon The Seas", "song": "Shadows I Bury", "date": "09/23/2025", "order": 1199, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Kenneth.williams7@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Sly Bandit", "song": "A Force Greater", "date": "09/24/2025", "order": 1207, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "beehntyler3795@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Record Prophets", "song": "Honey Bea", "date": "09/25/2025", "order": 1209, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "recordprophetsband@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Allay Earhart", "song": "Allay Earhart", "date": "2025-07-09 00:00:00", "order": 1153, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Knock Rio Beats", "song": "Got No Time", "date": "2025-08-09 00:00:00", "order": 1157, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "knockriobeats@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "King Jay", "song": "Kiss Goodbye", "date": "09/14/2025", "order": 1172, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "Maimuxic/maiya@sonicscoutradio.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "eff Skigh", "song": "Loophole", "date": "09/21/2025", "order": 1194, "sub_fee": 20.0, "sonic_fee": 9.0, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "MW Poem, O'ne, Allay Earhart/I like it, Caveman", "song": "Cafe Du Monde", "date": "09/21/2025", "order": 1195, "sub_fee": 30.0, "sonic_fee": 16.5, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "DMAAN, Merna Zso", "song": "Maiya", "date": "09/28/2025", "order": 1215, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Jordi", "artist": "STEINO", "song": "Feel My Heartbeat", "date": "2025-12-09 00:00:00", "order": 1170, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "oskar.steinhauf@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Mixi", "artist": "Steve Stairway", "song": "\"Queen Of Sheba\"", "date": "09/13/2025", "order": 1168, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "stevestairway@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Mixi", "artist": "Stori -", "song": "Express Yourself feat. Kay", "date": "09/13/2025", "order": 1169, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Storimgmt@icloud.com", "payment_ref": "", "sponsor": false}, {"presenter": "Mixi", "artist": "Steve Stairway", "song": "Steve Stairway", "date": "09/20/2025", "order": 1187, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "stevestairway@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Mixi", "artist": "Brooks Herring", "song": "How To Fix A Broken Heart", "date": "09/13/2025", "order": 1117, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "brooks@brooksherringmusic.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Kelain James", "song": "The Devil and I, riding out a hurricane,", "date": "2025-03-10 00:00:00", "order": 1218, "sub_fee": 40.0, "sonic_fee": 22.0, "email": "Kelainjames42@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Dalton Jones", "song": "Right Here in the South", "date": "2025-04-10 00:00:00", "order": 1220, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "daltonjonesmusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "brooks herring", "song": "brooks herring", "date": "10/17/2025", "order": 1240, "sub_fee": 40.0, "sonic_fee": 22.0, "email": "brooks@brooksherringmusic.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "brandon holcomb", "song": "brandon holcomb", "date": "10/19/2025", "order": 1245, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "brandonholcombmusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Sploot", "song": "Earworm", "date": "2025-02-10 00:00:00", "order": 1217, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "sploottheband@gmail.co", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Rathaus", "song": "Tungsten Tongues", "date": "2025-02-10 00:00:00", "order": 1221, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "sofie.rorlien@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "skorpioninreverse", "song": "Enter The Abyss", "date": "2025-07-10 00:00:00", "order": 1224, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "nickyturner2005@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Comatose Almost", "song": "Fever Dream", "date": "2025-08-10 00:00:00", "order": 1225, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Comatosealmostband@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Dan Higgins", "song": "Returning", "date": "2025-10-10 00:00:00", "order": 1227, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Daniel Herrera", "song": "Et Facta Est Lux", "date": "10/17/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "tengrinormusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "George Hutton Hunter", "song": "Sirens call my name", "date": "10/19/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ankiornyx@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "George Hutton Hunter", "song": "Death and Rebirth", "date": "10/19/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ankiornyx@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "George Hutton Hunter", "song": "Mother I remember U", "date": "10/19/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "visualbeast@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "George Hutton Hunter", "song": "The Puppet Masters", "date": "10/19/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "visualbeast@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Martine Vande Velde", "song": "Ghosts at my Window", "date": "10/19/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "obsidianclawsofficial@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "War Club - MBHW", "song": "War Club - MBHW", "date": "10/20/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "wearewarclub@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Kelly Stokes", "song": "Scorjobdestinationls", "date": "10/18/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "tebigblimp@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "visualbeast@gmail.com", "song": "visualbeast@gmail.com", "date": "10/18/2025", "order": 1241, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "visualbeast@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Nelly Donovan", "song": "name", "date": "10/24/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "nellywasnervous@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Kilro Henneth", "song": "2 FUCKED UP", "date": "10/17/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "kilrohazeomg@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Roo Stewart", "song": "the fence", "date": "10/17/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "roosmarie221@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "jboglin18@gmail.com", "song": "jboglin18@gmail.com", "date": "10/19/2025", "order": 1242, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "jboglin18@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Lexi Algar", "song": "Bless The Telephone", "date": "2025-05-10 00:00:00", "order": 1222, "sub_fee": 10.0, "sonic_fee": 5.0, "email": "info@lexialgar.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Sarah Again", "song": "Sarah Again", "date": "10/13/2025", "order": 1234, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "sarahagainmusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Brock Taylor", "song": "Brock Taylor", "date": "10/15/2025", "order": 1238, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "btaylor@brocktaylormusic.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Ocean Rivera", "song": "Forever Gone", "date": "10/17/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "contact@oceanrivera.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "ihateunion2002@gmail.com", "song": "ihateunion2002@gmail.com", "date": "10/17/2025", "order": 1239, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ihateunion2002@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Dan Higgins", "song": "Dan Higgins", "date": "10/20/2025", "order": 1244, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Phillip Horny", "song": "good boy", "date": "10/23/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "thewildlifeisrad@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Blane Conant", "song": "Blane Conant", "date": "10/26/2025", "order": 1249, "sub_fee": 30.0, "sonic_fee": 16.5, "email": "writ3rsblock@writ3rsblock.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "petervandenhoven69@gmail.com", "song": "petervandenhoven69@gmail.com", "date": "10/26/2025", "order": 1251, "sub_fee": 20.0, "sonic_fee": 11.0, "email": "petervandenhoven69@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Jared Huntley", "song": "EVIL EYE", "date": "10/30/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "huesmusic99@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Jared Huntley", "song": "POISON CHALICE", "date": "10/30/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "huesmusic99@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Jared Huntley", "song": "ZOMBIE (ft. Juko2x)", "date": "10/30/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "huesmusic99@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Uptown Sounds", "song": "Ace Gabbana, Merna Szo, Cainaen McGhee,", "date": "2025-05-10 00:00:00", "order": 1223, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Maiya LeGardye", "song": "Uptown Sounds", "date": "2025-12-10 00:00:00", "order": 1233, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Maiya LeGardye", "song": "Uptown Sounds", "date": "2025-12-10 00:00:00", "order": 1243, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Maiya LeGardye", "song": "Uptown Sounds", "date": "2025-12-10 00:00:00", "order": 1250, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Jonathan Tate", "song": "Destructive Force", "date": "2025-09-10 00:00:00", "order": 1226, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jonathanrtate1984@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Daniel Higgins", "song": "Returning", "date": "2025-12-10 00:00:00", "order": 1229, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Sandro Fontaine", "song": "Sandro Fontaine", "date": "10/13/2025", "order": 1236, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "taperubber@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "tom ciapponi", "song": "tom ciapponi", "date": "10/14/2025", "order": 1237, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ciapponitom@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Tony Basilio", "song": "Where Have You Been", "date": "10/20/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "impolitesocietyband@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Tony Basilio", "song": "New Orleans", "date": "10/20/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "impolitesocietyband@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Rich Holley", "song": "Next Contender", "date": "10/27/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "richiecantona@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Tony", "artist": "RuffCompany Records LLC", "song": "RuffCompany Records LLC", "date": "2025-12-10 00:00:00", "order": 1230, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ruffcompanyrecords@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Costanza", "artist": "Daniel Higgins", "song": "Daniel Higgins", "date": "10/13/2025", "order": 1235, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Costanza", "artist": "Dan Higgins", "song": "Night Light", "date": "10/29/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Costanza", "artist": "Rhys Harper", "song": "The Kiss", "date": "10/27.2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ffharper13@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "Costanza", "artist": "Dan Higgins", "song": "Incandescent", "date": "10/28/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Chop", "artist": "Fraser Whiting", "song": "Insolis", "date": "10/22/2025", "order": 1248, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "insoliscontact@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Dan Higgins", "song": "Incandescent", "date": "2025-04-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Dan Higgins", "song": "Night Light", "date": "2025-04-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Stephen Jones", "song": "Big Storm", "date": "2025-01-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "stephenjonesmusic@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Michael Versluis", "song": "Boots on the floor", "date": "2025-07-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "michael_versluis@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Michael Versluis", "song": "Shoot tequila then", "date": "2025-07-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "michael_versluis@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Michael Versluis", "song": "United we stand", "date": "2025-07-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "michael_versluis@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "John Gentry", "song": "Mr. Lonely", "date": "2025-08-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jg.countrymusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "John Gentry", "song": "WYDTM", "date": "2025-08-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jg.countrymusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "John Gentry", "song": "Raining Inside", "date": "2025-08-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jg.countrymusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Chris Ash", "song": "Freight Train Lover", "date": "2025-09-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chrisash65.CA@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Chris Ash", "song": "Dancin' In The Moons", "date": "2025-09-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chrisash65.CA@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Chris Ash", "song": "Fly Over The Moon", "date": "2025-09-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chrisash65.CA@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Chris Ash", "song": "One Last Beer", "date": "2025-09-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chrisash65.CA@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Dan Higgins", "song": "Meteors", "date": "11.09/2025", "order": 1258, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "County Line Three", "song": "Light Beer Buzz", "date": "2025-10-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "pierremachado11@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Chris Ash", "song": "Hard Livin'", "date": "11/15/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chrisash65.CA@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Chris Ash", "song": "Come Home To You", "date": "11/15/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chrisash65.CA@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "scottje@hendrix.edu", "song": "scottje@hendrix.edu", "date": "11/16/2025", "order": 1265, "sub_fee": 20.0, "sonic_fee": 11.0, "email": "scottje@hendrix.edu", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Edwin James", "song": "Letter To Mama", "date": "11/21/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.0, "email": "officialedwinjames@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Edwin James", "song": "My Bar", "date": "11/21/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.0, "email": "officialedwinjames@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Edwin James", "song": "Sun Dryin'", "date": "11/21/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "officialedwinjames@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Edwin James", "song": "Crazy", "date": "11/21/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "officialedwinjames@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Stephen Jones", "song": "", "date": "11/21/2025", "order": 0, "sub_fee": 50.0, "sonic_fee": 17.5, "email": "stephenjonesmusic@outlook.com", "payment_ref": "", "sponsor": true}, {"presenter": "Suki Blaze", "artist": "Kenneth Emmerson", "song": "Kenneth Emmerson", "date": "11/23/2025", "order": 1268, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "dieseltrampoline@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Ken Emmerson", "song": "After All", "date": "11/23/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "dieseltrampoline@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Cameron Smith", "song": "Come From It", "date": "11/23/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "roseland@roselandcountrymusic.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "the.sicknessstars@gmail.com", "song": "the.sicknessstars@gmail.com", "date": "2025-04-11 00:00:00", "order": 1254, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "the.sicknessstars@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Cameron Joyce", "song": "Born Again", "date": "2025-05-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "colossalmammothtusk@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "James Noone", "song": "releasethewolves20@gmail.com", "date": "2025-05-11 00:00:00", "order": 1256, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "releasethewolves20@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Nacho G\u00f1omo", "song": "Nacho G\u00f1omo", "date": "2025-08-11 00:00:00", "order": 1257, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "desertgnomos@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Nic Burton", "song": "Nic Burton", "date": "2025-12-11 00:00:00", "order": 1260, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Ingravesorrow@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Devin Aguilar", "song": "Dead Again", "date": "11/13/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "intoactionofficial@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Kenny Steele", "song": "Fire (I was forged)", "date": "11/14/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Kenny.steele79@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Aaron Cain", "song": "Aaron Cain", "date": "11/27/2025", "order": 1274, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "absentlightarena@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Quil Freitas", "song": "Living Heat", "date": "11/28/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "tranquilenes@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Anders Norrback Bornholm", "song": "Age of Anomalies", "date": "11/30/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "anders@bornholm.se", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "turbokeksrekovic@gmail.com", "song": "turbokeksrekovic@gmail.com", "date": "11/27/2025", "order": 1272, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "turbokeksrekovic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Alejandro Maduro", "song": "Alejandro Maduro", "date": "11/30/2025", "order": 1276, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "crowbonelicksthirteen@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Royce Shaffer", "song": "Cherry", "date": "2025-10-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "enderdog84@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Trent Kliner", "song": "What Was I to Say?", "date": "11/14/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "trentonkliner@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Danny Martins", "song": "b my b", "date": "11/19/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "trueloveskissband@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Holly Rudolph", "song": "Winter in Montauk", "date": "2025-01-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "holly.leigh.rudolph@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Talia", "song": "Talia", "date": "2025-03-11 00:00:00", "order": 1253, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "talialondoner@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Dan Higgins", "song": "Meteors", "date": "2025-09-11 00:00:00", "order": 1258, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Chris Ash", "song": "Freight Train Lover", "date": "2025-12-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chrisash65.CA@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Chris Ash", "song": "Dancin' In The Moons", "date": "2025-12-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chrisash65.CA@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Chris Ash", "song": "Cold Beer", "date": "2025-12-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chrisash65.CA@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Maiya LeGardye", "song": "Maiya LeGardye", "date": "2025-04-11 00:00:00", "order": 1252, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Maiya LeGardye", "song": "Maiya LeGardye", "date": "2025-09-11 00:00:00", "order": 1259, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "SOCALLOUS", "song": "Caught Up", "date": "11/13/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "socallous95@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Maiya LeGardye", "song": "Maiya LeGardye", "date": "11/16/2025", "order": 1264, "sub_fee": 40.0, "sonic_fee": 22.0, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Maiya LeGardye", "song": "Maiya LeGardye", "date": "11/30/2025", "order": 1277, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Dan Higgins", "song": "Night Light", "date": "2025-04-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Dan Higgins", "song": "Incandescent", "date": "2025-04-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Dan Higgins", "song": "Meteors", "date": "2025-09-11 00:00:00", "order": 1258, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "yakadel", "artist": "Jacob Tell", "song": "Jacob Tell", "date": "2025-05-11 00:00:00", "order": 1255, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jacobtell1980@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "yakadel", "artist": "Raymond Ploesser", "song": "My Brother", "date": "2025-10-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "burgundybmw@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "yakadel", "artist": "Jay Brandt", "song": "The Man of The Hour", "date": "2025-10-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chlorinebeachsucks@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "yakadel", "artist": "Pod Javis", "song": "Distance", "date": "11/13/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "podjavis@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "yakadel", "artist": "Carter C. Carter", "song": "Carter C. Carter", "date": "11/13/2025", "order": 1261, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Carter C. Carter", "payment_ref": "", "sponsor": false}, {"presenter": "yakadel", "artist": "augustisburning@gmail.com", "song": "augustisburning@gmail.com", "date": "11/21/2025", "order": 1267, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "augustisburning@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "yakadel", "artist": "Rory Keane", "song": "Run Run", "date": "11/30/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "rkeane215@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "yakadel", "artist": "Rory Keane", "song": "Rap Rap Rap", "date": "11/30/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "rkeane215@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DannyD", "artist": "Luke Stander", "song": "", "date": "11/23/2024", "order": 1269, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "lukestander104@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DannyD", "artist": "Hawk Tiles", "song": "Hawk Tiles", "date": "11/27/2025", "order": 1273, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "davyflory@protonmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DannyD", "artist": "Beldon Burch", "song": "Beldon Burch", "date": "11/29/2025", "order": 1275, "sub_fee": 30.0, "sonic_fee": 16.5, "email": "beldon1@icloud.com", "payment_ref": "", "sponsor": false}, {"presenter": "Sonic", "artist": "ReGeneX Records", "song": "The Pumpkin", "date": "2025-01-11 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 10.0, "email": "substacklasagne@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Blaine Lucas", "song": "Beer on Broadway", "date": "2025-01-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "blaino2@comcast.net", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Michael Wayne Dill", "song": "Michael Wayne Dill", "date": "2025-01-12 00:00:00", "order": 1266, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "micang2013@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Daniel Rittenhouse", "song": "Dirt Road Alibi", "date": "2025-02-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "djrittenhousemusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Stephen Jones", "song": "Go Tell It", "date": "2025-02-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "stephenjonesmusic@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Nathan Humphries", "song": "99", "date": "2025-07-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jdubbeats@icloud.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Josh Galvan", "song": "Trash Can Punch", "date": "2025-08-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "joshgalvan@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Josh Galvan", "song": "S.O.S.", "date": "2025-08-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "joshgalvan@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Nathan Humphries", "song": "Rio", "date": "2025-09-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jdubbeats@icloud.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Nathan Humphries", "song": "Turning up", "date": "2025-09-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jdubbeats@icloud.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Lee Fayssoux", "song": "Carolina Man", "date": "12/15/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Lee.Fayssoux.Music@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "George Nigel Smith", "song": "Heaven Has You", "date": "12/16/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "georgenigelsmith@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Stephen Jones", "song": "God is so good", "date": "12/23/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "stephenjonesmusic@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Michael Versluis", "song": "I will cling to you", "date": "12/29/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "michael_versluis@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "outcastfrequency", "artist": "Blake Lamoureux", "song": "Cenotaph(ft.JacobD)", "date": "2025-05-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ophidianmemory@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "roberto.remondi@gmail.com", "song": "roberto.remondi@gmail.com", "date": "2025-05-12 00:00:00", "order": 1282, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "roberto.remondi@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Jeff van Helvoort", "song": "Atheist In A Foxhole", "date": "2025-09-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "somasemahc@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "John Woodruff", "song": "Sand Mandala", "date": "2025-10-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "acolossalhand@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Alan Chesnutt", "song": "Our New Skin(Hushed)", "date": "2025-11-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "methreemusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Jai Mills", "song": "Shaded", "date": "2025-12-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "awolzbooking@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Veronica Randolph", "song": "TRASH", "date": "12/30/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "mgmt@batwaveband.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Veronica Randolph", "song": "KLAUS WARFARE", "date": "12/30/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "mgmt@batwaveband.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Danny Martins", "song": "whatever u want", "date": "2025-06-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "trueloveskissband@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "danhiggins1002@hotmail.com", "song": "danhiggins1002@hotmail.com", "date": "2025-01-12 00:00:00", "order": 1279, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Reckless Rhymacide", "song": "Do it", "date": "2025-01-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "rhymacidal@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "mlegardye1@mcc.edu", "song": "mlegardye1@mcc.edu", "date": "2025-07-12 00:00:00", "order": 1283, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "mlegardye1@mcc.edu", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Maiya LeGardye", "song": "Maiya LeGardye", "date": "12/29/2025", "order": 1288, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Maiya LeGardye", "song": "Maiya LeGardye", "date": "12/18/2026", "order": 1298, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "4YW8754913644411E", "sponsor": false}, {"presenter": "Bill", "artist": "danhiggins1002@hotmail.com", "song": "danhiggins1002@hotmail.com", "date": "2025-01-12 00:00:00", "order": 1279, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danhiggins1002@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DannyD", "artist": "zach.reisler@gmail.com", "song": "zach.reisler@gmail.com", "date": "12/-5/2025", "order": 1282, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "zach.reisler@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Origin of Styx", "artist": "Jennifer Weeks", "song": "Can You Imagine", "date": "2025-01-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jenn.weeks@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Origin of Styx", "artist": "Jennifer Weeks", "song": "Give It", "date": "2025-01-12 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jenn.weeks@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Stephen Jones", "song": "", "date": "2026-02-01 00:00:00", "order": 0, "sub_fee": 75.0, "sonic_fee": 26.25, "email": "", "payment_ref": "5VW10273T29287049", "sponsor": true}, {"presenter": "Suki Blaze", "artist": "Lloyd Miller", "song": "Thank You Jesus", "date": "2026-03-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "lloyd@spiritsongstudios.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Daniel Kirtley", "song": "Shadow of Night", "date": "2026-04-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danjkirtley1991@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Daniel Kirtley", "song": "Wilderness", "date": "2026-04-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danjkirtley1991@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Daniel Kirtley", "song": "Eagle's Wings", "date": "2026-04-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "danjkirtley1991@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Michael Wayne Dill", "song": "Without You", "date": "2026-05-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "micang2013@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Edwin James", "song": "Summer's Gonna Go", "date": "2026-06-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "officialedwinjames@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Jak Fiddler", "song": "So I Ride", "date": "2026-06-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jakfiddler@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Michael Wayne Dill", "song": "Another Friday Night", "date": "2026-08-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "micang2013@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Stephen Jones", "song": "", "date": "2026-08-01 00:00:00", "order": 0, "sub_fee": 75.0, "sonic_fee": 26.25, "email": "", "payment_ref": "3DJ034456C662791U", "sponsor": true}, {"presenter": "Suki Blaze", "artist": "Michael Versluis", "song": "First Time Gold", "date": "2026-12-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "michael_versluis@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Stephen Jones", "song": "", "date": "01/15/2026", "order": 0, "sub_fee": 125.0, "sonic_fee": 43.75, "email": "", "payment_ref": "22N516943S4448203", "sponsor": true}, {"presenter": "Suki Blaze", "artist": "Chris Ash", "song": "Young Love", "date": "01/17/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chrisash65.CA@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Chris Ash", "song": "Trouble", "date": "01/17/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chrisash65.CA@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Michael Versluis", "song": "Jon Boat Days", "date": "01/17/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "michael_versluis@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Suki Blaze", "artist": "Stephen Jones", "song": "", "date": "01/22/2026", "order": 0, "sub_fee": 75.0, "sonic_fee": 26.25, "email": "", "payment_ref": "5EM03244J8136763D", "sponsor": true}, {"presenter": "Suki Blaze", "artist": "Sponsorship", "song": "", "date": "01/30/2026", "order": 0, "sub_fee": 120.0, "sonic_fee": 42.0, "email": "officialedwinjames@gmail.com", "payment_ref": "", "sponsor": true}, {"presenter": "Suki Blaze", "artist": "Stephen Jones", "song": "", "date": "01/22/2026", "order": 0, "sub_fee": 75.0, "sonic_fee": 26.25, "email": "", "payment_ref": "2TB08907JP6240935", "sponsor": true}, {"presenter": "Dennis", "artist": "Jacob Darby", "song": "Too Close", "date": "2026-05-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jacobdarby96@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Rhiannon Holiday", "song": "Price of Loneliness", "date": "2026-06-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "rhiannon.holiday1995@hotmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Quizboy", "song": "Indiscretion", "date": "2026-11-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "audiomiragestudios@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Nick Davies", "song": "Elemental", "date": "01/25/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "nick@nhd-tax.co.uk", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Aaron Johnson", "song": "Heater", "date": "01/29/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "theofficialsyyn@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Tyler Beans", "song": "Radical Thoughts", "date": "0131/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "tylerbeans.music@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Tyler Beans", "song": "Puppets Off Their.", "date": "0131/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "tylerbeans.music@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Levi White", "song": "All Star White", "date": "2026-02-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "lwhitemusic18@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Ryan Henderson", "song": "Follow My Lead", "date": "2026-10-01 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "rphbb53@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "joshua neely", "song": "Anita", "date": "01/15/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "joshuaneely2@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Kwabena Robinson", "song": "Seen Worse", "date": "01/17/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "newkwab@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Levi White", "song": "Play Dis At Nite", "date": "01/23/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "leviellis344@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Michael Brim", "song": "MIKE&CHUBBBZ", "date": "01/23/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "miketbrim@icloud.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "bran don", "song": "On My Soul", "date": "01/27/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "keybrandon11@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "bran don", "song": "Take Me Home", "date": "01/27/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "keybrandon11@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Ethan Sloan", "song": "candles", "date": "01/30/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "sloanethan027@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Steven Inniss", "song": "Well, As For Today", "date": "01/30/2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "thesinniss@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Sappy Holidays", "song": "JAME IMPALA", "date": "01/30/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jamerz115@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Uptownsoundsmai@gmail.com", "song": "Uptownsoundsmai@gmail.com", "date": "2026-10-01 00:00:00", "order": 1293, "sub_fee": 50.0, "sonic_fee": 27.5, "email": "Uptownsoundsmai@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Maiya", "artist": "Verne Miller", "song": "A Taste Of Honey", "date": "01/24/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "vernemilleroo@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Chris Ash", "song": "Freight Train Lover", "date": "01/19/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chrisash65.CA@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Chris Ash", "song": "Dancin' In The Moons", "date": "01/19/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chrisash65.CA@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Chris Ash", "song": "Trouble", "date": "01/28/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Origin of Styx", "artist": "Adi Kriegsbeill", "song": "Sad Angels", "date": "01/14/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "beilladrien@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Origin of Styx", "artist": "Charm Dreier", "song": "Death by Stereo", "date": "01/21/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "charmdreier@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Josiah/MidWest Mic", "artist": "Donte Williams Jr", "song": "Donte Williams Jr", "date": "2026-01-01 00:00:00", "order": 1289, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "donteresolves@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Josiah/MidWest Mic", "artist": "$hon-$olo", "song": "Believe Me", "date": "2026-08-01 00:00:00", "order": 1291, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "KLChris.Patterson@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Josiah/MidWest Mic", "artist": "stuckeyisshooting@gmail.com", "song": "stuckeyisshooting@gmail.com", "date": "2026-09-01 00:00:00", "order": 1292, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "stuckeyisshooting@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Josiah/MidWest Mic", "artist": "Young MARS", "song": "Live Session", "date": "01/22/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "reggiemarsalis26@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Josiah/MidWest Mic", "artist": "Sir Muhammad", "song": "Ye$ir - Beach Party", "date": "01/25/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "sirmuhammad5@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Sonic", "artist": "KILL3R.B33.FUNK@gmail.com", "song": "KILL3R.B33.FUNK@gmail.com", "date": "2026-10-01 00:00:00", "order": 1294, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "KILL3R.B33.FUNK@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Sonic", "artist": "Jay Grisby", "song": "Jay Grisby", "date": "0111/2026", "order": 1296, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jgrisby@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "James Gregory", "song": "I Ain't Your Dog", "date": "2026-02-02 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jrgregorymusic@live.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Steve Shaw", "song": "The Big Issue", "date": "2026-07-02 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "teaforthewicked.official@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Steve Shaw", "song": "Golden Virgin", "date": "2026-07-02 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "teaforthewicked.official@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Chris Krecsy", "song": "Inflammatory Tin-man", "date": "2026-07-02 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "chris.krecsy@shaw.ca", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Jesse Hardiek", "song": "Rot", "date": "2026-08-02 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "badplansmusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Ben Blood", "song": "Drain the Lung", "date": "02/16/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "bloodtypes@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Mike de Gruchy", "song": "Supermodel Virus", "date": "02/18.2025", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "terrorgardenband@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Nick Luddite", "song": "Half Life", "date": "02/28/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 0.0, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Sponsorship", "song": "", "date": "2026-01-02 00:00:00", "order": 0, "sub_fee": 17.5, "sonic_fee": 17.5, "email": "", "payment_ref": "4WT45630KC497802A", "sponsor": true}, {"presenter": "Noah/HelloWorld", "artist": "Harlan Jacobs", "song": "Real One", "date": "2026-07-02 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "harlanj13@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Antonio Mere", "song": "FUZE", "date": "2026-08-02 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "Antoniomeremanagement@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Jewel Hercules", "song": "Valentine", "date": "02/13/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "jmusicnest@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Sponsorship", "song": "", "date": "02/15/2026", "order": 0, "sub_fee": 14.5, "sonic_fee": 14.5, "email": "", "payment_ref": "474824140K372581U", "sponsor": true}, {"presenter": "Noah/HelloWorld", "artist": "Michael Brim", "song": "RIPCHIPS", "date": "02/21/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 14.5, "email": "miketbrim@icloud.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Sponsorship", "song": "", "date": "02/23/2026", "order": 0, "sub_fee": 14.5, "sonic_fee": 14.5, "email": "", "payment_ref": "5TN37778M3310300B", "sponsor": true}, {"presenter": "DocZ", "artist": "Sponsorship", "song": "", "date": "2026-01-02 00:00:00", "order": 0, "sub_fee": 45.5, "sonic_fee": 17.5, "email": "", "payment_ref": "7G301444GF579932X", "sponsor": true}, {"presenter": "DocZ", "artist": "Sponsorship", "song": "", "date": "2026-08-02 00:00:00", "order": 0, "sub_fee": 75.0, "sonic_fee": 26.25, "email": "", "payment_ref": "1AH46454AF344380L", "sponsor": true}, {"presenter": "DocZ", "artist": "Sponsorship", "song": "", "date": "02/15/2026", "order": 0, "sub_fee": 50.0, "sonic_fee": 17.5, "email": "", "payment_ref": "5DN77168VP024704R", "sponsor": true}, {"presenter": "DocZ", "artist": "Sponsorship", "song": "", "date": "02/22/2026", "order": 0, "sub_fee": 50.0, "sonic_fee": 17.5, "email": "", "payment_ref": "2BX749005N627391S", "sponsor": true}, {"presenter": "Paul Leanered", "artist": "Paul Spnosor Net", "song": "Paul Spnosor Net", "date": "2026-01-02 00:00:00", "order": 0, "sub_fee": 45.5, "sonic_fee": 45.5, "email": "", "payment_ref": "6HP3707744079064L", "sponsor": true}, {"presenter": "Paul Leanered", "artist": "Holly Rudolph", "song": "BIG TROUBLE", "date": "2026-02-02 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "holly.leigh.rudolph@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Jillian Walker", "song": "better", "date": "02/24/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "catdoorsongs@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "New Order #1303", "artist": "Verne Miller", "song": "Your The One", "date": "2026-07-02 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "vernemilleroo@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "New order #1305", "artist": "Verne Miller", "song": "Break Free feat K.C.", "date": "2026-07-02 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "vernemilleroo@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "New order #1305", "artist": "Chad Comey", "song": "Ash and Tears", "date": "02/18/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "thelastgoodchad@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "New order 1306", "artist": "Verne Miller", "song": "Get This Money", "date": "02/23/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "vernemilleroo@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Origin of Styx", "artist": "Milutin Krasevic", "song": "Bell In The Rain", "date": "2026-05-02 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "nfo@bonesinbutter.com", "payment_ref": "", "sponsor": false}, {"presenter": "Origin of Styx", "artist": "EXOSAT", "song": "Slow Motion", "date": "2026-05-02 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "soren.ogelman@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Origin of Styx", "artist": "Gas Pillot", "song": "Immortal", "date": "02/14/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "gagasledeux@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Origin of Styx", "artist": "Simon Pedra", "song": "Checkmate D&B", "date": "02/15/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "simonpedra67@yahoo.com", "payment_ref": "", "sponsor": false}, {"presenter": "Sonic", "artist": "michael phillips", "song": "kraine lives matter", "date": "02/24/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 10.0, "email": "twofish888@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Yannik Raab", "song": "You Shall Not Pass", "date": "2026-02-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "YannikRaab@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Bjoern Schanz", "song": "A Perfect Day", "date": "2026-07-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "con@schanzmusic.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Bjoern Schanz", "song": "Cold", "date": "2026-07-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "con@schanzmusic.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Angus Reid", "song": "Colliderscope", "date": "2026-02-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "angusjamesreid@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Hungover Tuesday", "song": "Boris says no no no", "date": "2026-08-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "hungovertuesday@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Pavel Melotik", "song": "Get Away", "date": "2026-10-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "pavel.melotik@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Ben-G!", "song": "Shards", "date": "2026-10-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ben-g@megaherdz.live", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Hudson Simpson", "song": "Tourniquet", "date": "03/15/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "hudsonadriftofficial@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Pearl Fontaine", "song": "Hello, Hello", "date": "03/19/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "postamericangothic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Ellie Shore", "song": "Frequency", "date": "03/19/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ellieshore1234@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Mike Hernandez", "song": "Ashes", "date": "03/19/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "mikehernandezez@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Joey Rival", "song": "DanceWithYourDemons", "date": "03/18/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "joeyrival88@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Ava Toton", "song": "Anguish", "date": "03/18/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "cataclysmicmxc@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Dylan Steele", "song": "Withdrawal Symptoms", "date": "03/22/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "smokincolaproductions@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Sponsorship", "song": "", "date": "2026-02-03 00:00:00", "order": 0, "sub_fee": 17.5, "sonic_fee": 17.5, "email": "", "payment_ref": "20B51239N06054123", "sponsor": true}, {"presenter": "Noah/HelloWorld", "artist": "Royce Shaffer", "song": "Closer", "date": "2026-06-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Sponsorship", "song": "", "date": "2026-02-03 00:00:00", "order": 0, "sub_fee": 14.0, "sonic_fee": 14.0, "email": "", "payment_ref": "6P680375WS5142433", "sponsor": true}, {"presenter": "Noah/HelloWorld", "artist": "Julie Blasing", "song": "I am who I am", "date": "2026-12-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "narniamusic0603@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "presley smith", "song": "Wheezy", "date": "03/14/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "presleysmithmusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Sponsorship", "song": "", "date": "03/15/2026", "order": 0, "sub_fee": 10.5, "sonic_fee": 10.5, "email": "", "payment_ref": "8B277887FF541874C", "sponsor": true}, {"presenter": "Noah/HelloWorld", "artist": "John Hopkins", "song": "POP OUT FREESTYLE", "date": "03/24/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Sponsorship", "song": "", "date": "03/22/2026", "order": 0, "sub_fee": 17.5, "sonic_fee": 17.5, "email": "", "payment_ref": "52T47999RD0719329", "sponsor": true}, {"presenter": "Noah/HelloWorld", "artist": "p.b.j.", "song": "#FTW", "date": "03/29/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "joshuaneely2@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Sponsorship", "song": "", "date": "03/29/2026", "order": 0, "sub_fee": 17.5, "sonic_fee": 17.5, "email": "", "payment_ref": "3LT99939LF2543154", "sponsor": true}, {"presenter": "Noah/HelloWorld", "artist": "Kwabena Robinson", "song": "Hello Girl/Luv Hurts", "date": "03/29/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "newkwab@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Noah/HelloWorld", "artist": "Verne Miller", "song": "Inner Voice", "date": "03/31/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "vernemilleroo@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "Sponsorship", "song": "", "date": "2026-01-03 00:00:00", "order": 0, "sub_fee": 75.0, "sonic_fee": 26.25, "email": "", "payment_ref": "5LT06934HV521280J", "sponsor": true}, {"presenter": "DocZ", "artist": "Sponsorship", "song": "", "date": "2026-08-03 00:00:00", "order": 0, "sub_fee": 50.0, "sonic_fee": 17.5, "email": "", "payment_ref": "0RC40950DA751574G", "sponsor": true}, {"presenter": "DocZ", "artist": "Sponsorship", "song": "", "date": "03/015/2026", "order": 0, "sub_fee": 75.0, "sonic_fee": 26.25, "email": "", "payment_ref": "9TH93830703956832", "sponsor": true}, {"presenter": "DocZ", "artist": "Sponsorship", "song": "", "date": "03/22/2026", "order": 0, "sub_fee": 50.0, "sonic_fee": 17.5, "email": "", "payment_ref": "54R48854F7513553G", "sponsor": true}, {"presenter": "DocZ", "artist": "Sponsorship", "song": "", "date": "03/22/2026", "order": 0, "sub_fee": 50.0, "sonic_fee": 17.5, "email": "", "payment_ref": "3N429881G7053560V", "sponsor": true}, {"presenter": "Paul Leanered", "artist": "Sponsorship", "song": "", "date": "2026-02-03 00:00:00", "order": 0, "sub_fee": 27.5, "sonic_fee": 27.5, "email": "", "payment_ref": "7VN6578886321894H", "sponsor": true}, {"presenter": "Paul Leanered", "artist": "Demetris Harrison", "song": "World so cold", "date": "2026-08-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Sponsorship", "song": "", "date": "2026-08-03 00:00:00", "order": 0, "sub_fee": 28.0, "sonic_fee": 28.0, "email": "", "payment_ref": "9HV879037J526360E", "sponsor": true}, {"presenter": "Paul Leanered", "artist": "Billy Ivy", "song": "IN THE CLU", "date": "2026-11-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "bivy0408@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Paul Leanered", "artist": "Sponsorship", "song": "", "date": "03/16/2026", "order": 0, "sub_fee": 27.5, "sonic_fee": 27.5, "email": "", "payment_ref": "46R73339V1902645H", "sponsor": true}, {"presenter": "Paul Leanered", "artist": "Sponsorship", "song": "", "date": "03/25/2026", "order": 0, "sub_fee": 28.0, "sonic_fee": 28.0, "email": "", "payment_ref": "3GL306434G642652K", "sponsor": true}, {"presenter": "Paul Leanered", "artist": "Sponsorship", "song": "", "date": "03/30/2026", "order": 0, "sub_fee": 35.0, "sonic_fee": 35.0, "email": "", "payment_ref": "87423388F0577982B", "sponsor": true}, {"presenter": "Maiya", "artist": "Verne Miller", "song": "IT'S VERNE", "date": "2026-05-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "vernemilleroo@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Wren", "artist": "SAVBEA Beata Szavcsuk", "song": "Breaking Bad", "date": "2026-02-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "savchuk.beata@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "julian phillips aka twofish", "song": "Titty Terrorist", "date": "2026-10-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "twofish888@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "julian phillips aka twofish", "song": "This little piggy", "date": "2026-10-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "twofish888@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "julian phillips aka twofish", "song": "Secret agent man", "date": "2026-10-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "twofish888@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "julian phillips aka twofish", "song": "pissedoff all wrong", "date": "2026-03-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "twofish888@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "julian phillips aka twofish", "song": "father joseph", "date": "2026-03-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "twofish888@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "julian phillips aka twofish", "song": "danger for sale", "date": "2026-03-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "twofish888@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "julian phillips aka twofish", "song": "baby", "date": "2026-03-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "twofish888@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "julian phillips aka twofish", "song": "cold on the glacier", "date": "2026-03-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "twofish888@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "David Corvus", "song": "TRAVELERS", "date": "03/19/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "david.corvus13@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "David Corvus", "song": "PASSENGERS", "date": "03/19/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "david.corvus13@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Origin of Styx", "artist": "Sponsorship", "song": "", "date": "2026-01-03 00:00:00", "order": 0, "sub_fee": 27.5, "sonic_fee": 27.5, "email": "", "payment_ref": "8XY54619KN8981448", "sponsor": true}, {"presenter": "Origin of Styx", "artist": "Sponsorship", "song": "", "date": "2026-08-03 00:00:00", "order": 0, "sub_fee": 27.5, "sonic_fee": 22.5, "email": "", "payment_ref": "71T90188ST529951X", "sponsor": true}, {"presenter": "WREN", "artist": "Steve Mack", "song": "Game of Hearts", "date": "03/20/2026", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "steve@sdmackpictures.com", "payment_ref": "", "sponsor": false}, {"presenter": "ETHAN", "artist": "Sponsorship", "song": "", "date": "03/15/2026", "order": 0, "sub_fee": 22.5, "sonic_fee": 22.5, "email": "", "payment_ref": "95A23159U81854649", "sponsor": true}, {"presenter": "ETHAN", "artist": "Sponsorship", "song": "", "date": "03/22/2026", "order": 0, "sub_fee": 22.5, "sonic_fee": 22.5, "email": "", "payment_ref": "3JG432452M092302D", "sponsor": true}, {"presenter": "ETHAN", "artist": "Sponsorship", "song": "", "date": "03/29/2026", "order": 0, "sub_fee": 22.5, "sonic_fee": 22.5, "email": "", "payment_ref": "8H299590ED896804H", "sponsor": true}, {"presenter": "Sonic", "artist": "David McCulloch", "song": "Sucking Me In", "date": "2026-01-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "collectoredition06@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Sonic", "artist": "David McCulloch", "song": "The Great Escape", "date": "2026-01-03 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "collectoredition06@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Max Berek", "song": "Zipper", "date": "2026-01-04 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "gummylandnyc@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Ollie Sharp", "song": "CHEER UP", "date": "2026-01-04 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "ollieciaran@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Pyrefly", "song": "The Void - Pyrefly", "date": "2026-02-04 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "pyreflymusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "KJ Risk", "song": "The Void - Pyrefly", "date": "2026-02-04 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "pyreflymusic@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Sorrow Stories", "song": "Too Early", "date": "2026-01-04 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "SorrowStories@gmail.com", "payment_ref": "", "sponsor": false}, {"presenter": "Dennis", "artist": "Mike Sandercock", "song": "What's My Wage Again", "date": "2026-06-04 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "mike.sandercock@outlook.com", "payment_ref": "", "sponsor": false}, {"presenter": "DocZ", "artist": "Sponsorship", "song": "", "date": "2026-05-04 00:00:00", "order": 0, "sub_fee": 50.0, "sonic_fee": 17.5, "email": "", "payment_ref": "1GP758480F098642E", "sponsor": true}, {"presenter": "RAW & UNCHARTED", "artist": "Joshua Warburton", "song": "2023", "date": "2026-06-04 00:00:00", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Brian Hensley", "song": "AWAY", "date": "M1224", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}, {"presenter": "Bill", "artist": "Brian Hensley", "song": "Breaking Me", "date": "M1225", "order": 0, "sub_fee": 10.0, "sonic_fee": 5.5, "email": "", "payment_ref": "", "sponsor": false}];
+
+function loadData(){
+  try{
+    var s=localStorage.getItem(STORAGE_KEY);
+    if(s){
+      var p=JSON.parse(s);
+      if(p && Array.isArray(p) && p.length > 0) return p;
+    }
+  }catch(e){}
+  // No data in localStorage - load seedData
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(seedData));
+  return seedData.slice();
+}
+
+var db=loadData();
+var sortField='order', sortDir='asc';
+
+function fmt(n){return '$'+parseFloat(n||0).toFixed(2);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function populatePresenterFilter(){
+  var sel=document.getElementById('filterPresenter');
+  var ps=[...new Set(db.map(r=>r.presenter).filter(Boolean))].sort();
+  ps.forEach(function(p){var o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
+}
+
+function setSort(field){
+  sortDir=(sortField===field&&sortDir==='asc')?'desc':'asc';
+  sortField=field;
+  document.getElementById('sortField').value=field;
+  document.getElementById('sortDir').value=sortDir;
+  renderTable();
+}
+
+function renderTable(){
+  var q=document.getElementById('searchInput').value.toLowerCase();
+  var pf=document.getElementById('filterPresenter').value;
+  var sf=document.getElementById('filterSponsor').value;
+  var mf=document.getElementById('filterMonth').value;
+  sortField=document.getElementById('sortField').value;
+  sortDir=document.getElementById('sortDir').value;
+
+  function ssrParseMonth(dateStr){
+    if(!dateStr) return '';
+    // Handle formats: 07/18/25, 08/13/2025, 2025-08-17 00:00:00, 2025-01-09 etc
+    var s = String(dateStr).trim();
+    // ISO format: 2025-08-17...
+    var m = s.match(/^(\d{4})-(\d{2})/);
+    if(m) return m[1]+'-'+m[2];
+    // MM/DD/YY format: 07/18/25
+    var m2 = s.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+    if(m2) return '20'+m2[3]+'-'+m2[1];
+    // MM/DD/YYYY format: 08/13/2025
+    var m3 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+    if(m3) return m3[3]+'-'+m3[1];
+    return '';
+  }
+
+  var filtered=db.filter(function(r){
+    var mq=!q||(r.artist||'').toLowerCase().includes(q)||(r.presenter||'').toLowerCase().includes(q)||
+            (r.song||'').toLowerCase().includes(q)||(r.email||'').toLowerCase().includes(q)||
+            (r.payment_ref||'').toLowerCase().includes(q)||String(r.order).includes(q);
+    var mp=!pf||r.presenter===pf;
+    var ms=!sf||(sf==='yes'?r.sponsor:!r.sponsor);
+    var mm=!mf||ssrParseMonth(r.date)===mf;
+    return mq&&mp&&ms&&mm;
+  });
+
+  filtered.sort(function(a,b){
+    var av=a[sortField]||'',bv=b[sortField]||'';
+    if(typeof av==='number')return sortDir==='asc'?av-bv:bv-av;
+    return sortDir==='asc'?String(av).localeCompare(String(bv)):String(bv).localeCompare(String(av));
+  });
+
+  // Build index map: filtered item -> db index
+  var tbody=document.getElementById('tableBody');
+  tbody.innerHTML=filtered.map(function(r){
+    var dbIdx=db.indexOf(r);
+    return '<tr class="'+(r.sponsor?'sponsor-row':'')+'" onclick="openEdit('+dbIdx+')" title="Click to edit or delete">'
+      +'<td class="td-order">'+(r.order?'#'+r.order:'–')+'</td>'
+      +'<td class="td-presenter">'+esc(r.presenter)+'</td>'
+      +'<td class="td-artist">'+esc(r.artist)+'</td>'
+      +'<td class="td-song">'+esc(r.song)+'</td>'
+      +'<td class="td-date">'+esc(r.date)+'</td>'
+      +'<td class="td-fee">'+fmt(r.sub_fee)+'</td>'
+      +'<td class="td-sonic">'+fmt(r.sonic_fee)+'</td>'
+      +'<td class="td-email">'+esc(r.email)+'</td>'
+      +'<td class="td-ref">'+esc(r.payment_ref)+'</td>'
+      +'<td class="td-sponsor">'+(r.sponsor?'<span class="sponsor-yes">&#9733; Yes</span>':'<span class="sponsor-no">–</span>')+'</td>'
+      +'</tr>';
+  }).join('');
+
+  var ts=filtered.reduce(function(s,r){return s+r.sub_fee;},0);
+  var tso=filtered.reduce(function(s,r){return s+r.sonic_fee;},0);
+  document.getElementById('ftSubTotal').textContent=fmt(ts);
+  document.getElementById('ftSonicTotal').textContent=fmt(tso);
+  document.getElementById('showCount').textContent=filtered.length;
+  document.getElementById('totalCount').textContent=db.length;
+  updateSummary();
+}
+
+function updateSummary(){
+  var ts=db.reduce(function(s,r){return s+r.sub_fee;},0);
+  var tso=db.reduce(function(s,r){return s+r.sonic_fee;},0);
+  var ps=[...new Set(db.map(r=>r.presenter).filter(Boolean))];
+  var sp=db.filter(r=>r.sponsor).length;
+  var avg=db.length?ts/db.length:0;
+  document.getElementById('sTotalSub').textContent=fmt(ts);
+  document.getElementById('sTotalSonic').textContent=fmt(tso);
+  document.getElementById('sEntries').textContent=db.length;
+  document.getElementById('sPresenters').textContent=ps.length;
+  document.getElementById('sSponsors').textContent=sp;
+  document.getElementById('sAvgFee').textContent=fmt(avg);
+  document.getElementById('hTotalSub').textContent=fmt(ts);
+  document.getElementById('hTotalSonic').textContent=fmt(tso);
+  document.getElementById('hEntries').textContent=db.length;
+}
+
+function openModal(){document.getElementById('modal').classList.add('open');document.getElementById('fPresenter').focus();}
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  ['fPresenter','fOrder','fArtist','fSong','fDate','fEmail','fSubFee','fSonicFee','fPayRef']
+    .forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('fSponsor').checked=false;
+}
+
+var editIndex = -1;
+
+function openEdit(dbIdx){
+  editIndex = dbIdx;
+  var r = db[dbIdx];
+  document.getElementById('ePresenter').value = r.presenter||'';
+  document.getElementById('eOrder').value = r.order||'';
+  document.getElementById('eArtist').value = r.artist||'';
+  document.getElementById('eSong').value = r.song||'';
+  document.getElementById('eDate').value = r.date||'';
+  document.getElementById('eEmail').value = r.email||'';
+  document.getElementById('eSubFee').value = r.sub_fee||'';
+  document.getElementById('eSonicFee').value = r.sonic_fee||'';
+  document.getElementById('ePayRef').value = r.payment_ref||'';
+  document.getElementById('eSponsor').checked = !!r.sponsor;
+  document.getElementById('editModal').classList.add('open');
+  document.getElementById('ePresenter').focus();
+}
+
+function closeEdit(){
+  document.getElementById('editModal').classList.remove('open');
+  editIndex = -1;
+}
+
+function saveEdit(){
+  if(editIndex < 0) return;
+  var r = db[editIndex];
+  r.presenter = document.getElementById('ePresenter').value.trim();
+  r.order = parseInt(document.getElementById('eOrder').value)||0;
+  r.artist = document.getElementById('eArtist').value.trim();
+  r.song = document.getElementById('eSong').value.trim();
+  r.date = document.getElementById('eDate').value.trim();
+  r.email = document.getElementById('eEmail').value.trim();
+  r.sub_fee = parseFloat(document.getElementById('eSubFee').value)||0;
+  r.sonic_fee = parseFloat(document.getElementById('eSonicFee').value)||0;
+  r.payment_ref = document.getElementById('ePayRef').value.trim();
+  r.sponsor = document.getElementById('eSponsor').checked;
+  db[editIndex] = r;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  closeEdit();
+  renderTable();
+}
+
+function deleteEntry(){
+  if(editIndex < 0) return;
+  var r = db[editIndex];
+  var name = r.artist || r.presenter || 'this entry';
+  if(!confirm('Delete entry for "' + name + '"? This cannot be undone.')) return;
+  db.splice(editIndex, 1);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  closeEdit();
+  renderTable();
+}
+
+function saveEntry(){
+  var artist=document.getElementById('fArtist').value.trim();
+  var order=parseInt(document.getElementById('fOrder').value)||0;
+  var sub_fee=parseFloat(document.getElementById('fSubFee').value)||0;
+  if(!artist){alert('Artist name is required');return;}
+  if(!sub_fee){alert('Submission fee is required');return;}
+  var entry={
+    presenter:document.getElementById('fPresenter').value.trim(),
+    artist,
+    song:document.getElementById('fSong').value.trim(),
+    date:document.getElementById('fDate').value.trim(),
+    order,
+    sub_fee,
+    sonic_fee:parseFloat(document.getElementById('fSonicFee').value)||0,
+    email:document.getElementById('fEmail').value.trim(),
+    payment_ref:document.getElementById('fPayRef').value.trim(),
+    sponsor:document.getElementById('fSponsor').checked,
+  };
+  db.push(entry);
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(db));
+  var sel=document.getElementById('filterPresenter');
+  if(entry.presenter&&!Array.from(sel.options).find(o=>o.value===entry.presenter)){
+    var opt=document.createElement('option');opt.value=entry.presenter;opt.textContent=entry.presenter;sel.appendChild(opt);
+  }
+  closeModal();
+  renderTable();
+  setTimeout(function(){
+    document.querySelectorAll('#tableBody tr').forEach(function(r){
+      if(r.cells[2].textContent===artist)r.classList.add('new-row');
+    });
+  },100);
+}
+
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeEdit();}});
+
+// ── CHART ──
+var ssrChart = null;
+var ssrChartMode = 'submissions';
+
+var ssrMonths = [
+  {key:'2025-07',label:'Jul 25'},
+  {key:'2025-08',label:'Aug 25'},
+  {key:'2025-09',label:'Sep 25'},
+  {key:'2025-10',label:'Oct 25'},
+  {key:'2025-11',label:'Nov 25'},
+  {key:'2025-12',label:'Dec 25'},
+  {key:'2026-01',label:'Jan 26'},
+  {key:'2026-02',label:'Feb 26'},
+  {key:'2026-03',label:'Mar 26'},
+  {key:'2026-04',label:'Apr 26'},
+  {key:'2026-05',label:'May 26'},
+  {key:'2026-06',label:'Jun 26'},
+  {key:'2026-07',label:'Jul 26'},
+  {key:'2026-08',label:'Aug 26'},
+  {key:'2026-09',label:'Sep 26'},
+  {key:'2026-10',label:'Oct 26'},
+  {key:'2026-11',label:'Nov 26'},
+  {key:'2026-12',label:'Dec 26'},
+];
+
+function ssrParseMonthForChart(dateStr){
+  if(!dateStr) return '';
+  var s = String(dateStr).trim();
+  var m = s.match(/^(\d{4})-(\d{2})/);
+  if(m) return m[1]+'-'+m[2];
+  var m2 = s.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+  if(m2) return '20'+m2[3]+'-'+m2[1];
+  var m3 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m3) return m3[3]+'-'+m3[1];
+  return '';
+}
+
+function setChartMode(mode){
+  ssrChartMode = mode;
+  document.querySelectorAll('.chart-toggle').forEach(function(b){
+    b.classList.toggle('active', b.textContent.toLowerCase().includes(
+      mode==='submissions'?'sub':mode==='sub_fee'?'sub f':'sonic'
+    ));
+  });
+  buildChart();
+}
+
+function buildChart(){
+  // Aggregate db by month
+  var totals = {};
+  ssrMonths.forEach(function(m){ totals[m.key] = 0; });
+  db.forEach(function(r){
+    var mk = ssrParseMonthForChart(r.date);
+    if(!totals.hasOwnProperty(mk)) return;
+    if(ssrChartMode === 'submissions') totals[mk]++;
+    else if(ssrChartMode === 'sub_fee') totals[mk] += (r.sub_fee||0);
+    else if(ssrChartMode === 'sonic_fee') totals[mk] += (r.sonic_fee||0);
+  });
+
+  var labels = ssrMonths.map(function(m){ return m.label; });
+  var values = ssrMonths.map(function(m){ return Math.round(totals[m.key]*100)/100; });
+
+  var ctx = document.getElementById('ssrChart').getContext('2d');
+  if(ssrChart) ssrChart.destroy();
+
+  ssrChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: ssrChartMode === 'submissions' ? 'Submissions' : ssrChartMode === 'sub_fee' ? 'Sub Fees ($)' : 'Sonic Fees ($)',
+        data: values,
+        borderColor: '#e8700a',
+        backgroundColor: 'rgba(232,112,10,0.08)',
+        pointBackgroundColor: '#e8700a',
+        pointBorderColor: '#e8700a',
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.3,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a1a1e',
+          borderColor: '#e8700a',
+          borderWidth: 1,
+          titleColor: '#e8700a',
+          bodyColor: '#f0ede8',
+          padding: 10,
+          callbacks: {
+            label: function(ctx){
+              var v = ctx.parsed.y;
+              if(ssrChartMode !== 'submissions') return ' $'+v.toFixed(2);
+              return ' '+v+' submission'+(v===1?'':'s');
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#c0c0c0', font: { size: 11, family: 'Arial' } },
+          border: { color: '#2a2a2e' }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: {
+            color: '#c0c0c0',
+            font: { size: 11, family: 'Arial' },
+            callback: function(v){
+              return ssrChartMode !== 'submissions' ? '$'+v : v;
+            }
+          },
+          border: { color: '#2a2a2e' },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+// Build chart after db loads
+setTimeout(buildChart, 100);
+
+// ── CSV EXPORT ──
+function exportCSV(){
+  var headers = ['Order','Presenter','Artist','Song','Date','Sub Fee','Sonic Fee','Email','Payment Ref','Sponsor'];
+  var rows = db.map(function(r){
+    return [
+      r.order||'',
+      '"'+(r.presenter||'').replace(/"/g,'""')+'"',
+      '"'+(r.artist||'').replace(/"/g,'""')+'"',
+      '"'+(r.song||'').replace(/"/g,'""')+'"',
+      '"'+(r.date||'').replace(/"/g,'""')+'"',
+      (r.sub_fee||0).toFixed(2),
+      (r.sonic_fee||0).toFixed(2),
+      '"'+(r.email||'').replace(/"/g,'""')+'"',
+      '"'+(r.payment_ref||'').replace(/"/g,'""')+'"',
+      r.sponsor?'Yes':'No'
+    ].join(',');
+  });
+  var csv = [headers.join(',')].concat(rows).join('\n');
+  var blob = new Blob([csv], {type:'text/csv'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'SSR_Submissions_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── GOOGLE APPS SCRIPT SYNC ────────────────────────────────
+// Paste your deployed Web App URL here:
+var APPS_SCRIPT_URL = 'YOUR_WEB_APP_URL_HERE';
+
+function syncToSheet() {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_WEB_APP_URL_HERE') {
+    alert('Please paste your Apps Script Web App URL into the dashboard code first.');
+    return;
+  }
+  var btn = document.getElementById('syncBtn');
+  btn.textContent = 'Syncing...';
+  btn.disabled = true;
+
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'sync', data: db }),
+    headers: { 'Content-Type': 'text/plain' }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(res){
+    if (res.success) {
+      btn.textContent = '✓ Synced ' + res.synced + ' rows';
+      setTimeout(function(){ btn.textContent = '⬆ Sync to Sheet'; btn.disabled = false; }, 3000);
+    } else {
+      btn.textContent = 'Sync Failed';
+      btn.disabled = false;
+      alert('Sync error: ' + res.error);
+    }
+  })
+  .catch(function(err){
+    btn.textContent = 'Sync Failed';
+    btn.disabled = false;
+    alert('Network error: ' + err);
+  });
+}
+
+function loadFromSheet() {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_WEB_APP_URL_HERE') {
+    alert('Please paste your Apps Script Web App URL into the dashboard code first.');
+    return;
+  }
+  var btn = document.getElementById('loadBtn');
+  btn.textContent = 'Loading...';
+  btn.disabled = true;
+
+  fetch(APPS_SCRIPT_URL)
+  .then(function(r){ return r.json(); })
+  .then(function(res){
+    if (res.success && res.data.length > 0) {
+      // Map sheet columns back to db format
+      db = res.data.map(function(row){
+        return {
+          order:       parseInt(row['Order']) || 0,
+          presenter:   row['Presenter'] || '',
+          artist:      row['Artist'] || '',
+          song:        row['Song'] || '',
+          date:        row['Date'] || '',
+          sub_fee:     parseFloat(row['Sub Fee']) || 0,
+          sonic_fee:   parseFloat(row['Sonic Fee']) || 0,
+          email:       row['Email'] || '',
+          payment_ref: row['Payment Ref'] || '',
+          sponsor:     row['Sponsor'] === 'Yes'
+        };
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+      renderTable();
+      btn.textContent = '✓ Loaded ' + db.length + ' rows';
+      setTimeout(function(){ btn.textContent = '⬇ Load from Sheet'; btn.disabled = false; }, 3000);
+    } else {
+      btn.textContent = 'No data found';
+      btn.disabled = false;
+    }
+  })
+  .catch(function(err){
+    btn.textContent = 'Load Failed';
+    btn.disabled = false;
+    alert('Network error: ' + err);
+  });
+}
+
+populatePresenterFilter();
+renderTable();
+</script>
+</body>
+</html>
